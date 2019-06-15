@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"strings"
@@ -12,7 +12,6 @@ func main() {
 	//Get arguments from command line
 	args := os.Args[1:]
 	if len(args) != 3 {
-		//TODO: Make text red
 		fmt.Println("Usage:  ./TableTennis <server|client> <serverHost> <port#>")
 		os.Exit(-1)
 	}
@@ -40,26 +39,21 @@ func server(port string) {
 	checkError(err)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError(err)
-	// conn, err := listener.Accept()
-	// if err != nil {
-	// 	fmt.Println("Error")
-	// }
+	conn, err := listener.Accept()
+	if err != nil {
+		fmt.Println("Error")
+	}
 	fmt.Println("Connection established.")
 	for {
-		//Accept new connection
-		conn, err := listener.Accept()
-		if err != nil {
-			fmt.Println("Error")
-		}
-
-		//Send it a ping
-		_, err = conn.Write([]byte("Ping"))
-		fmt.Println("wrote Ping")
-		//result, err := ioutil.ReadAll(conn)
-		//checkError(err)
-		//fmt.Println(string(result))
-
-		conn.Close()
+		// will listen for message to process ending in newline (\n)
+		message, _ := bufio.NewReader(conn).ReadString('\n')
+		// output message received
+		fmt.Print("Message Received:", string(message))
+		// sample process for string received
+		newmessage := "Pong"
+		fmt.Print("Text to send: " + newmessage + "\n")
+		// send new string back to client
+		conn.Write([]byte(newmessage + "\n"))
 	}
 	//conn.Close()
 }
@@ -69,19 +63,20 @@ func client(serverHost string, port string) {
 	serverHost = serverHost + ":" + port
 	tcpAddr, err := net.ResolveTCPAddr("tcp", serverHost)
 	checkError(err)
-	// conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	// checkError(err)
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	checkError(err)
+
 	for {
-		conn, err := net.DialTCP("tcp", nil, tcpAddr)
-		checkError(err)
-
-		result, err := ioutil.ReadAll(conn)
-		checkError(err)
-		fmt.Println(string(result))
-		//_, err = conn.Write([]byte("Pong"))
-
-		conn.Close()
+		message := "Ping"
+		fmt.Print("Text to send: " + message + "\n")
+		//text, _ := reader.ReadString('\n')
+		// send to socket
+		fmt.Fprintf(conn, message+"\n")
+		// listen for reply
+		response, _ := bufio.NewReader(conn).ReadString('\n')
+		fmt.Print("Message from server: " + response)
 	}
+
 	//checkError(err)
 	//os.Exit(0)
 }
