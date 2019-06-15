@@ -40,17 +40,26 @@ func server(port string) {
 	checkError(err)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError(err)
-	conn, err := listener.Accept()
-	if err != nil {
-		fmt.Println("Error")
-	}
+	// conn, err := listener.Accept()
+	// if err != nil {
+	// 	fmt.Println("Error")
+	// }
 	fmt.Println("Connection established.")
 	for {
+		//Accept new connection
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Println("Error")
+		}
+
+		//Send it a ping
 		_, err = conn.Write([]byte("Ping"))
 		fmt.Println("wrote Ping")
 		//result, err := ioutil.ReadAll(conn)
 		//checkError(err)
 		//fmt.Println(string(result))
+
+		conn.Close()
 	}
 	//conn.Close()
 }
@@ -60,13 +69,18 @@ func client(serverHost string, port string) {
 	serverHost = serverHost + ":" + port
 	tcpAddr, err := net.ResolveTCPAddr("tcp", serverHost)
 	checkError(err)
-	conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	checkError(err)
+	// conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	// checkError(err)
 	for {
+		conn, err := net.DialTCP("tcp", nil, tcpAddr)
+		checkError(err)
+
 		result, err := ioutil.ReadAll(conn)
 		checkError(err)
 		fmt.Println(string(result))
 		//_, err = conn.Write([]byte("Pong"))
+
+		conn.Close()
 	}
 	//checkError(err)
 	//os.Exit(0)
